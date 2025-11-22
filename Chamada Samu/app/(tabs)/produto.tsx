@@ -1,130 +1,71 @@
-import axios from 'axios';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Button, ScrollView,
-  StyleSheet, Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Alert, Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const API_URL = 'https://prtctec.com.br/api/usuario'; 
-
-export default function PerfilCrudScreen() {
-  const [id, setId] = useState(''); 
-  const [nome, setNome] = useState('');
-  const [tipoSanguineo, setTipoSanguineo] = useState('');
-  const [alergias, setAlergias] = useState('');
-  const [medicamentos, setMedicamentos] = useState('');
+export default function PerfilScreen() {
+  const router = useRouter();
   
-  const [loading, setLoading] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false); 
+  // Estados para edição
+  const [nome, setNome] = useState('Usuário Exemplo');
+  const [telefone, setTelefone] = useState('(11) 99999-9999');
+  const [email, setEmail] = useState('usuario@email.com');
+  const [emergencia, setEmergencia] = useState('Mãe - (11) 88888-8888');
 
-  // --- 1. READ (Consultar) ---
-  const buscarUsuario = async () => {
-    if (!id) { Alert.alert("Erro", "Digite um ID para buscar."); return; }
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_URL}/${id}`);
-      const dados = response.data;
-      setNome(dados.nome || '');
-      setTipoSanguineo(dados.tipoSanguineo || ''); 
-      setAlergias(dados.alergias || '');
-      setMedicamentos(dados.medicamentos || '');
-      setIsEditMode(true); 
-      Alert.alert("Encontrado", "Dados carregados.");
-    } catch (error) {
-      Alert.alert("Erro", "Usuário não encontrado.");
-      limparFormulario(false); 
-    } finally { setLoading(false); }
-  };
-
-  // --- 2. CREATE (Cadastrar) ---
-  const cadastrarUsuario = async () => {
-    if (!nome || !tipoSanguineo) { Alert.alert("Atenção", "Nome e Tipo Sanguíneo obrigatórios."); return; }
-    setLoading(true);
-    try {
-      const novoUsuario = { nome, tipoSanguineo, alergias, medicamentos };
-      const response = await axios.post(API_URL, novoUsuario);
-      Alert.alert("Sucesso", `Usuário cadastrado! ID: ${response.data.id}`);
-      setId(String(response.data.id)); 
-      setIsEditMode(true);
-    } catch (error) {
-      Alert.alert("Erro", "Falha ao cadastrar.");
-    } finally { setLoading(false); }
-  };
-
-  // --- 3. UPDATE (Atualizar) ---
-  const atualizarUsuario = async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const usuarioAtualizado = { nome, tipoSanguineo, alergias, medicamentos };
-      await axios.put(`${API_URL}/${id}`, usuarioAtualizado);
-      Alert.alert("Sucesso", "Dados atualizados.");
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível atualizar.");
-    } finally { setLoading(false); }
-  };
-
-  // --- 4. DELETE (Excluir) ---
-  const excluirUsuario = async () => {
-    if (!id) return;
-    Alert.alert("Confirmar", "Deseja apagar sua ficha?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: async () => {
-          setLoading(true);
-          try {
-            await axios.delete(`${API_URL}/${id}`);
-            Alert.alert("Excluído", "Usuário removido.");
-            limparFormulario(true);
-          } catch (error) { Alert.alert("Erro", "Falha ao excluir."); } 
-          finally { setLoading(false); }
-        }
-      }
+  const handleLogout = () => {
+    Alert.alert("Sair", "Deseja deslogar?", [
+      { text: "Não", style: "cancel" },
+      { text: "Sim", onPress: () => router.replace('/') } // Volta para tela de Login
     ]);
   };
 
-  const limparFormulario = (limparId = true) => {
-    if(limparId) setId('');
-    setNome(''); setTipoSanguineo(''); setAlergias(''); setMedicamentos('');
-    setIsEditMode(false);
+  const trocarFoto = () => {
+    Alert.alert("Câmera", "Abrindo câmera para atualizar foto de perfil...");
+    // Aqui você integraria o código da câmera se quisesse
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cadastro SAMU (CRUD)</Text>
+        <TouchableOpacity onPress={trocarFoto} style={styles.avatarContainer}>
+           {/* Placeholder de foto - Círculo cinza com ícone */}
+           <View style={styles.avatarPlaceholder}>
+             <IconSymbol size={50} name="camera.fill" color="#fff" />
+           </View>
+           <Text style={styles.editPhotoText}>Alterar Foto</Text>
+        </TouchableOpacity>
+        <Text style={styles.nameTitle}>{nome}</Text>
       </View>
-      <View style={styles.form}>
-        <View style={styles.searchContainer}>
-          <TextInput style={[styles.input, styles.inputSearch]} placeholder="ID do Usuário" value={id} onChangeText={setId} keyboardType="numeric"/>
-          <TouchableOpacity style={styles.btnSearch} onPress={buscarUsuario}><Text style={styles.btnText}>BUSCAR</Text></TouchableOpacity>
-        </View>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} value={nome} onChangeText={setNome}/>
-        <Text style={styles.label}>Tipo Sanguíneo</Text>
-        <TextInput style={styles.input} value={tipoSanguineo} onChangeText={setTipoSanguineo}/>
-        <Text style={styles.label}>Alergias</Text>
-        <TextInput style={styles.input} value={alergias} onChangeText={setAlergias}/>
-        <Text style={styles.label}>Medicamentos</Text>
-        <TextInput style={[styles.input, {height: 60}]} multiline value={medicamentos} onChangeText={setMedicamentos}/>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dados Pessoais</Text>
         
-        {loading && <ActivityIndicator size="large" color="#d32f2f" />}
+        <Text style={styles.label}>Nome Completo</Text>
+        <TextInput style={styles.input} value={nome} onChangeText={setNome} />
+
+        <Text style={styles.label}>Email</Text>
+        <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
+
+        <Text style={styles.label}>Telefone</Text>
+        <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Segurança & Emergência</Text>
         
-        <View style={styles.actionButtons}>
-          {!isEditMode ? (
-            <Button title="CADASTRAR (CREATE)" onPress={cadastrarUsuario} color="#2e7d32" />
-          ) : (
-            <>
-              <View style={{marginBottom: 10}}><Button title="ATUALIZAR (UPDATE)" onPress={atualizarUsuario} color="#0288d1" /></View>
-              <Button title="EXCLUIR CONTA (DELETE)" onPress={excluirUsuario} color="#d32f2f" />
-              <TouchableOpacity onPress={() => limparFormulario(true)} style={{marginTop: 15}}><Text style={{textAlign: 'center', color: '#666'}}>Limpar / Novo</Text></TouchableOpacity>
-            </>
-          )}
-        </View>
+        <Text style={styles.label}>Contato de Emergência</Text>
+        <TextInput style={[styles.input, {borderColor: '#d32f2f'}]} value={emergencia} onChangeText={setEmergencia} />
+
+        <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert("Senha", "Email de redefinição enviado.")}>
+          <IconSymbol size={20} name="lock.fill" color="#555" />
+          <Text style={styles.optionText}>Alterar Senha</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.footer}>
+        <Button title="Salvar Alterações" color="#0a7ea4" onPress={() => Alert.alert("Sucesso", "Perfil atualizado!")} />
+        <View style={{height: 15}} />
+        <Button title="SAIR DO APP" color="#d32f2f" onPress={handleLogout} />
       </View>
     </ScrollView>
   );
@@ -132,14 +73,16 @@ export default function PerfilCrudScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee', paddingTop: 50 },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#d32f2f' },
-  form: { padding: 20 },
-  searchContainer: { flexDirection: 'row', marginBottom: 20, alignItems: 'center' },
-  inputSearch: { flex: 1, marginBottom: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 },
-  btnSearch: { backgroundColor: '#333', padding: 15, borderTopRightRadius: 8, borderBottomRightRadius: 8, height: 50, justifyContent: 'center' },
-  btnText: { color: '#fff', fontWeight: 'bold' },
-  label: { fontSize: 16, fontWeight: '600', marginBottom: 5, color: '#333' },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
-  actionButtons: { marginTop: 10 }
+  header: { alignItems: 'center', padding: 30, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: '#eee' },
+  avatarContainer: { alignItems: 'center', marginBottom: 10 },
+  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' },
+  editPhotoText: { color: '#0a7ea4', marginTop: 5, fontSize: 14 },
+  nameTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+  section: { padding: 20, backgroundColor: '#fff', marginTop: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#d32f2f' },
+  label: { fontSize: 14, color: '#666', marginBottom: 5 },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, marginBottom: 15, fontSize: 16 },
+  optionButton: { flexDirection: 'row', alignItems: 'center', padding: 15, backgroundColor: '#f0f0f0', borderRadius: 8, marginTop: 5 },
+  optionText: { marginLeft: 10, fontSize: 16, color: '#333' },
+  footer: { padding: 20, paddingBottom: 50 }
 });
