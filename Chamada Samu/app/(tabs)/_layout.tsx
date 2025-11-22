@@ -1,11 +1,9 @@
+import { HapticTab } from '@/components/haptic-tab';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -13,33 +11,39 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#d32f2f', // Cor do SAMU quando ativo
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: Platform.select({
           ios: { position: 'absolute' },
-          default: {},
+          default: { height: 60, paddingBottom: 10 },
         }),
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Emergência',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
-        }}
-      />
+      
+      {/* 1. Rastreio (Esquerda) */}
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Rastreio', // Era 'Explore'
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Rastreio',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="location.fill" color={color} />, // Ícone de Mapa
         }}
       />
+
+      {/* 2. Chamada (Centro - Home) - OBS: 'index' geralmente é a rota padrão */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'CHAMAR',
+          tabBarIcon: ({ color }) => <IconSymbol size={32} name="phone.fill" color={color} />, // Ícone de Telefone
+        }}
+      />
+
+      {/* 3. Dados/Perfil (Direita) */}
       <Tabs.Screen
         name="produto"
         options={{
-          title: 'Meu Perfil', // Era 'Produto'
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          title: 'Meu Perfil',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />, // Ícone de Pessoa
         }}
       />
     </Tabs>
